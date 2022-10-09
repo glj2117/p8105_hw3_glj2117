@@ -23,8 +23,7 @@ Make a table showing the mean hour of the day at which Pink Lady Apples and Coff
 
 ```{r}
 library(p8105.datasets)
-data("instacart")
-view(instacart)
+  data("instacart")
 ```
 
 ## Problem 2
@@ -49,6 +48,16 @@ accel_data = read.csv("accel_data.csv") %>%
   
   mutate(weekday_vs_weekend = if_else(day == "Monday", "weekday", day))
 
+```
+The resulting dataset...
+
+```
+Traditional analyses of accelerometer data focus on the total activity over the day. Using your tidied dataset, aggregate across minutes to create a total activity variable for each day, and create a table showing these totals. Are any trends apparent?
+```{r}
+accel_data %>% 
+  group_by(day_id) %>% 
+  summarize(sum(activity_count)) %>% 
+ knitr::kable(digits = 1)
 
 ```
 
