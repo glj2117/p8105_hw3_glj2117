@@ -69,6 +69,18 @@ accel_data %>%
 ```
 There only trend visible when grouping by day of the week is that total activity count is slightly higher on Wednesday, Thursday, and Friday (days 3, 4, 5 here), as compared to the rest of the days, with Friday having the highest total activity count. 
 ```
+Accelerometer data allows the inspection activity over the course of the day. Make a single-panel plot that shows the 24-hour activity time courses for each day and use color to indicate day of the week. Describe in words any patterns or conclusions you can make based on this graph.
+
+```{r}
+accel_data %>% 
+  group_by(day_id) %>% 
+  ggplot(aes(x = minute_post_midnight, y = activity_count, color = day)) +
+  geom_line() +
+  viridis::scale_color_viridis(
+    name = "day" 
+ )
+
+```
 
 ## Problem 3
 
@@ -84,6 +96,18 @@ nrow(ny_noaa) #2595176
 ncol(ny_noaa) #7
 
 ```
+Do some data cleaning. Create separate variables for year, month, and day. Ensure observations for temperature, precipitation, and snowfall are given in reasonable units. For snowfall, what are the most commonly observed values? Why?
+```{r}
 
+ny_noaa = ny_noaa %>% 
+  separate(col = 'date', into = c('year', 'month', 'day'), sep = '-')
+
+ny_noaa %>% 
+   group_by(snow) %>% 
+    summarize(n_obs = n()) %>% 
+    arrange(desc(n_obs))
+
+```
+The most commonly observed values for snowfall are 0 mm, 25 mm, and 13 mm. There are also 381221 NA values for snowfall, the second-most behind 0 mm. 
 
 
