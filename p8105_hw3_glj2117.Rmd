@@ -24,6 +24,15 @@ Make a table showing the mean hour of the day at which Pink Lady Apples and Coff
 ```{r}
 library(p8105.datasets)
   data("instacart")
+
+nrow(instacart) #1384617
+ncol(instacart) #15
+
+instacart %>% 
+  group_by(aisle_id) %>% 
+  count() %>% 
+  print(n = 150) #134 aisles
+
 ```
 
 ## Problem 2
