@@ -109,5 +109,30 @@ ny_noaa %>%
 
 ```
 The most commonly observed values for snowfall are 0 mm, 25 mm, and 13 mm. There are also 381221 NA values for snowfall, the second-most behind 0 mm. 
+```
+Make a two-panel plot showing the average max temperature in January and in July in each station across years. Is there any observable / interpretable structure? Any outliers?
+```{r}
+ny_noaa = ny_noaa %>% 
+  mutate(tmax = as.numeric(tmax))
+
+ny_noaa = ny_noaa %>% 
+  mutate(tmin = as.numeric(tmin))
+
+ny_noaa %>% 
+  group_by(id, year) %>% 
+  filter(month == "07") %>% 
+  summarize(
+    mean_tmax = mean(tmax, NaN.rm = TRUE)) %>% 
+    ggplot(aes(x = year, y = mean_tmax, color = id)) + 
+    geom_point() 
+ 
+ny_noaa %>% 
+  group_by(id, year) %>% 
+  filter(month == "01") %>% 
+  summarize(
+    mean_tmax = mean(tmax, NaN.rm = TRUE)) %>% 
+    ggplot(aes(x = year, y = mean_tmax, color = id)) + 
+    geom_point()  
+```
 
 
