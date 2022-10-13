@@ -5,9 +5,27 @@ date: '2022-10-15'
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+
+knitr::opts_chunk$set(
+	echo = TRUE,
+	warning = FALSE,
+  fig.width = 6,
+  fig.asp = .6,
+  out.width = "90%"
+)
+
+theme_set(theme_minimal() + theme(legend.position = "bottom"))
+
+options(
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis"
+)
+
+scale_colour_discrete = scale_colour_viridis_d
+scale_fill_discrete = scale_fill_viridis_d
 
 library(tidyverse)
+library(patchwork)
 
 ```
 
@@ -62,20 +80,19 @@ The resulting dataset...
 Traditional analyses of accelerometer data focus on the total activity over the day. Using your tidied dataset, aggregate across minutes to create a total activity variable for each day, and create a table showing these totals. Are any trends apparent?
 ```{r}
 accel_data %>% 
-  group_by(day) %>% 
+  group_by(day_id) %>% 
   summarize(sum(activity_count)) %>% 
  knitr::kable(digits = 1)
 
 ```
-There only trend visible when grouping by day of the week is that total activity count is slightly higher on Wednesday, Thursday, and Friday (days 3, 4, 5 here), as compared to the rest of the days, with Friday having the highest total activity count. 
+The trends days 4, 10, 16, 29 have the highest activity counts (in the 600,000s, while most of the other days fall in the ~200,000-400,000 range). There are two drastically low days for activity count, day 24 an day 31 (both within the last two weeks of the data collection). 
 ```
 Accelerometer data allows the inspection activity over the course of the day. Make a single-panel plot that shows the 24-hour activity time courses for each day and use color to indicate day of the week. Describe in words any patterns or conclusions you can make based on this graph.
 
 ```{r}
 accel_data %>% 
-  group_by(day_id) %>% 
-  ggplot(aes(x = minute_post_midnight, y = activity_count, color = day)) +
-  geom_line() +
+  ggplot(aes(x = minute_post_midnight, y = activity_count)) +
+  geom_line(aes(color = day)) +
   viridis::scale_color_viridis(
     name = "day" 
  )
@@ -118,21 +135,51 @@ ny_noaa = ny_noaa %>%
 ny_noaa = ny_noaa %>% 
   mutate(tmin = as.numeric(tmin))
 
-ny_noaa %>% 
-  group_by(id, year) %>% 
+month_tmax_min = ny_noaa %>% 
+  group_by(id, year, month) %>% 
+  summarize(
+  mean_tmax = mean(tmax, NaN.rm = TRUE), 
+  mean_tmin = mean(tmin, NaN.rm = TRUE)
+)
+
+tmax_july =
+month_tmax_min %>% 
   filter(month == "07") %>% 
-  summarize(
-    mean_tmax = mean(tmax, NaN.rm = TRUE)) %>% 
-    ggplot(aes(x = year, y = mean_tmax, color = id)) + 
-    geom_point() 
- 
-ny_noaa %>% 
-  group_by(id, year) %>% 
+    ggplot(aes(x = year, y = mean_tmax, group = id)) + 
+    geom_line(aes(color = id)) + 
+    theme(legend.position = "none") + 
+    theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+    
+   
+tmax_jan =  
+month_tmax_min %>% 
   filter(month == "01") %>% 
-  summarize(
-    mean_tmax = mean(tmax, NaN.rm = TRUE)) %>% 
-    ggplot(aes(x = year, y = mean_tmax, color = id)) + 
-    geom_point()  
+    ggplot(aes(x = year, y = mean_tmax, group = id)) + 
+    geom_line(aes(color = id)) + 
+    theme(legend.position = "none") + 
+    theme(axis.text.x = element_text(angle = 90, hjust = 1))
+    
+tmax_jan + tmax_july
+
+```
+Make a two-panel plot showing (i) tmax vs tmin for the full dataset (note that a scatterplot may not be the best option); and (ii) make a plot showing the distribution of snowfall values greater than 0 and less than 100 separately by year.
+
+```{r}
+tmax_total =
+month_tmax_min %>% 
+  ggplot(aes(x = year, y = mean_tmax, group = id)) +
+  geom_line(aes(color = id)) + 
+    theme(legend.position = "none") + 
+    theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+tmin_total =
+month_tmax_min %>% 
+  ggplot(aes(x = year, y = mean_tmin, group = id)) +
+  geom_line(aes(color = id)) + 
+    theme(legend.position = "none") + 
+    theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+tmax_total + tmin_total
 ```
 
 
