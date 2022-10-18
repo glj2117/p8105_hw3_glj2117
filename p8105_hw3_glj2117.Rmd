@@ -6,9 +6,11 @@ date: '2022-10-15'
 
 ```{r setup, include=FALSE}
 
+
+library(tidyverse)
+library(patchwork)
+
 knitr::opts_chunk$set(
-	echo = TRUE,
-	warning = FALSE,
   fig.width = 6,
   fig.asp = .6,
   out.width = "90%"
@@ -23,9 +25,6 @@ options(
 
 scale_colour_discrete = scale_colour_viridis_d
 scale_fill_discrete = scale_fill_viridis_d
-
-library(tidyverse)
-library(patchwork)
 
 ```
 
@@ -71,21 +70,21 @@ accel_data = read.csv("accel_data.csv") %>%
     values_to = "activity_count") %>% 
  mutate(day = recode(day, "Monday" = 1, "Tuesday" = 2, "Wednesday" = 3, "Thursday" = 4, "Friday" = 5, "Saturday" = 6, "Sunday" = 7)) %>% 
   mutate(weekend_vs_weekday = if_else(day >= 6, "weekend", "weekday"))
-  
+
 
 ```
-The resulting dataset...
+The resulting dataset includes `r nrow(accel_data)` rows of data observations and `r ncol(accel_data)` variables. The data span 29 days over 5 weeks. With `day_id` indicating the day (1-29), day indicating the day of the week (where 1 = Monday and 7 = Sunday), `minute_post_midnight` indicating the time during the day at which the observation was taken, and `activity_count` being the metric of activity during that given minute of time. The `weekend_vs_weekday` column simply denotes whether the data were collected on a weekday or on a weekend day.
 
 ```
 Traditional analyses of accelerometer data focus on the total activity over the day. Using your tidied dataset, aggregate across minutes to create a total activity variable for each day, and create a table showing these totals. Are any trends apparent?
 ```{r}
 accel_data %>% 
-  group_by(day_id) %>% 
+  group_by(day, day_id) %>% 
   summarize(sum(activity_count)) %>% 
  knitr::kable(digits = 1)
 
 ```
-The trends days 4, 10, 16, 29 have the highest activity counts (in the 600,000s, while most of the other days fall in the ~200,000-400,000 range). There are two drastically low days for activity count, day 24 an day 31 (both within the last two weeks of the data collection). 
+The trends days 4, 10, 16, 29 have the highest activity counts (in the 600,000s, while most of the other days fall in the ~200,000-400,000 range). There are two drastically low days for activity count, day 24 an day 31 (both within the last two weeks of the data collection). In terms of patterns by weekday, the weekdays seem to have realtively stable/similar activity counts, while increasing a bit on the weekends (except fot those two Saturdays with low points in week 5).
 ```
 Accelerometer data allows the inspection activity over the course of the day. Make a single-panel plot that shows the 24-hour activity time courses for each day and use color to indicate day of the week. Describe in words any patterns or conclusions you can make based on this graph.
 
@@ -98,6 +97,7 @@ accel_data %>%
  )
 
 ```
+It is difficult to make many conclusions based on this graph, as it extremely busy, due to including so many datapoints. However, it is interesting to see (via the color distribution) thatactivity count stays relatively stable throughout the week and throughout the day. The outliers to the stability seem to be day 7 (Sunday) towards the end of the days, and a few mid-week points (days 2-4) in the beginning of the days. 
 
 ## Problem 3
 
@@ -113,7 +113,7 @@ view(ny_noaa)
 
 ```
 ```
-The dataset is `r nrow(ny_noaa)` observations long, and `r ncol(ny_noaa)` variables wide. Data are missing for all variables for early November 2007, as well as late July/early August 2008, and intermittently betwwen August and October of 2009. Additionally, tmin and tmax are missing for many dates. 
+The dataset is `r nrow(ny_noaa)` observations long, and `r ncol(ny_noaa)` variables wide. Data are missing for all variables for early November 2007, as well as late July/early August 2008, and intermittently betwwen August and October of 2009. Additionally, tmin and tmax are missing for many dates, which can impact the accuracy of some of the summary statistics (such as mean) we want to calculate. 
 
 ```
 Do some data cleaning. Create separate variables for year, month, and day. Ensure observations for temperature, precipitation, and snowfall are given in reasonable units. For snowfall, what are the most commonly observed values? Why?
@@ -128,7 +128,7 @@ ny_noaa %>%
     arrange(desc(n_obs))
 
 ```
-The most commonly observed values for snowfall are 0 mm, 25 mm, and 13 mm. There are also 381221 NA values for snowfall, the second-most behind 0 mm. 
+The most commonly observed values for snowfall are 0 mm, 25 mm, and 13 mm. There are also 381221 NA values for snowfall, the second-most behind 0 mm. This is likely because there are many days without snowfall in the summer months, or where snowfall went unreported. 
 ```
 Make a two-panel plot showing the average max temperature in January and in July in each station across years. Is there any observable / interpretable structure? Any outliers?
 ```{r}
@@ -149,7 +149,7 @@ month_tmax_min = ny_noaa %>%
 month_tmax_min %>% 
   filter(month %in% c("01", "07")) %>% 
     ggplot(aes(x = year, y = mean_tmax, group = id)) + 
-    geom_line(aes(color = id)) + 
+    geom_line(aes(color = id), alpha = .5) + 
     theme(legend.position = "none") + 
     theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
     facet_grid(.~ month)
